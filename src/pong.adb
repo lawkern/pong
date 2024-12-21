@@ -10,7 +10,6 @@ with SDL3; use SDL3;
 procedure Pong is
    Window   : SDL3.Window;
    Renderer : SDL3.Renderer;
-   Event    : SDL3.Event;
 
    Running : Boolean := True;
 
@@ -22,16 +21,26 @@ begin
    SDL3.Init (Flags => SDL3.Init_Video);
 
    SDL3.Create_Window_And_Renderer
-     (Title    => "PONG", W => 600, H => 400, Flags => 0, Window => Window,
+     (Title    => "PONG", W => 600, H => 400,
+      Flags    => SDL3.Window_Resizable or SDL3.Window_High_Pixel_Density,
+      Window   => Window,
       Renderer => Renderer);
 
    while Running loop
-      while SDL3.Poll_Event (Event) loop
-         if Event.Kind = SDL3.Event_Quit then
-            Running := False;
-            exit;
-         end if;
-      end loop;
+      declare
+         Event : SDL3.Event;
+      begin
+         while SDL3.Poll_Event (Event) loop
+            if Event.Kind = SDL3.Event_Quit then
+               Running := False;
+               exit;
+            end if;
+         end loop;
+      end;
+
+      SDL3.Set_Render_Draw_Color (Renderer, R => 32, G => 32, B => 64, A => 255);
+      SDL3.Render_Clear (Renderer);
+      SDL3.Render_Present (Renderer);
 
       delay 0.016_67;
 

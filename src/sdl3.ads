@@ -10,6 +10,7 @@ package SDL3 is
 
    Initialization_Error : exception;
 
+   type Uint8  is mod 2**8  with Convention => C;
    type Uint32 is mod 2**32 with Convention => C;
    type Uint64 is mod 2**64 with Convention => C;
 
@@ -79,5 +80,9 @@ package SDL3 is
    for Event'Alignment use 8;
 
    function Poll_Event (Event : out SDL3.Event) return Boolean;
+
+   procedure Set_Render_Draw_Color (Renderer : SDL3.Renderer;  R, G, B, A: Uint8);
+   procedure Render_Clear (Renderer : SDL3.Renderer);
+   procedure Render_Present (Renderer : SDL3.Renderer);
 
 end SDL3;
