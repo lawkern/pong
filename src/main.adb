@@ -6,19 +6,19 @@ with Platform; use Platform;
 with Game;
 
 procedure Main is
-   Backbuffer : Game.Texture;
+   GS : Game.State;
 begin
    Platform.Log ("Pong Start!");
 
-   Game.Initialize (Backbuffer);
-   Platform.Initialize (W => Backbuffer.W, H => Backbuffer.H);
+   Game.Initialize (GS);
+   Platform.Initialize (W => GS.Backbuffer.W, H => GS.Backbuffer.H);
 
    while Platform.Running loop
-      Platform.Process_Input;
+      Platform.Process_Input (GS.Buttons);
 
-      Game.Update (Backbuffer, Platform.Frame_Duration);
+      Game.Update (GS, Platform.Frame_Duration);
 
-      Platform.Render (Backbuffer);
+      Platform.Render (GS.Backbuffer);
       Platform.Frame_End;
    end loop;
 

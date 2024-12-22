@@ -58,7 +58,7 @@ package body Platform is
          Log ("ERROR: SDL3 initialzation failed.");
    end Initialize;
 
-   procedure Process_Input is
+   procedure Process_Input (Buttons : out Game.Button_States) is
       Event : SDL3.Event;
    begin
       while SDL3.Poll_Event (Event) loop
@@ -68,26 +68,27 @@ package body Platform is
                exit;
 
             when SDL3.Event_Key_Up | SDL3.Event_Key_Down =>
-               if Event.Key.Down = C.True and Event.Key.Repeat = C.False then
+               declare
+                  Pressed : Boolean := Boolean (Event.Key.Down);
+               begin
                   case Event.Key.Key is
                      when Keycode_Escape =>
                         Running := False;
                         exit;
 
-                     when Keycode_W =>Log ("Up");
-                     when Keycode_A =>Log ("Left");
-                     when Keycode_S =>Log ("Down");
-                     when Keycode_D =>Log ("Right");
+                     when Keycode_W =>Game.Process_Button (Buttons (Game.Player1_Up), Pressed);
+                     when Keycode_A =>Game.Process_Button (Buttons (Game.Player1_Left), Pressed);
+                     when Keycode_S =>Game.Process_Button (Buttons (Game.Player1_Down), Pressed);
+                     when Keycode_D =>Game.Process_Button (Buttons (Game.Player1_Right), Pressed);
 
-                     when Keycode_I =>Log ("Up");
-                     when Keycode_J =>Log ("Left");
-                     when Keycode_K =>Log ("Down");
-                     when Keycode_L =>Log ("Right");
+                     when Keycode_I =>Game.Process_Button (Buttons (Game.Player2_Up), Pressed);
+                     when Keycode_J =>Game.Process_Button (Buttons (Game.Player2_Left), Pressed);
+                     when Keycode_K =>Game.Process_Button (Buttons (Game.Player2_Down), Pressed);
+                     when Keycode_L =>Game.Process_Button (Buttons (Game.Player2_Right), Pressed);
 
                      when others =>null;
                   end case;
-               end if;
-
+               end;
             when others =>null;
          end case;
       end loop;

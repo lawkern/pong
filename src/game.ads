@@ -14,6 +14,35 @@ package Game is
       Pixels : Pixel_Access;
    end record;
 
-   procedure Initialize (Backbuffer : out Texture);
-   procedure Update (Backbuffer : in out Texture; Frame_Duration : Time_Span);
+   type Button_Type is
+     (Player1_Up, Player1_Down, Player1_Left, Player1_Right,
+      Player2_Up, Player2_Down, Player2_Left, Player2_Right);
+
+   type Button_State is record
+      Pressed, Transitioned : Boolean := False;
+   end record;
+
+   type Button_States is array (Button_Type) of Button_State;
+
+   type Position is record
+      X, Y : Integer := 0;
+   end record;
+
+   type State is record
+      Backbuffer : Texture;
+      Buttons    : Button_States;
+
+      P1, P2 : Position;
+   end record;
+
+   Paddle_H : Integer := 100;
+   Paddle_W : Integer := 20;
+
+   Padding       : Integer := 10;
+   Ball_Half_Dim : Integer := 10;
+   Ball_Dim      : Integer := Ball_Half_Dim * 2;
+
+   procedure Initialize (GS : out Game.State);
+   procedure Process_Button (Button : out Button_State; Pressed : Boolean);
+   procedure Update (GS : in out Game.State; Frame_Duration : Time_Span);
 end Game;
