@@ -32,11 +32,14 @@ package Game is
       Backbuffer : Texture;
       Buttons    : Button_States;
 
-      P1, P2 : Position;
+      P1, P2, Ball : Position;
    end record;
 
-   Paddle_H : Integer := 100;
-   Paddle_W : Integer := 20;
+   Paddle_Half_W : Integer := 8;
+   Paddle_Half_H : Integer := 50;
+
+   Paddle_W : Integer := Paddle_Half_W * 2;
+   Paddle_H : Integer := Paddle_Half_H * 2;
 
    Padding       : Integer := 10;
    Ball_Half_Dim : Integer := 10;
