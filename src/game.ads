@@ -39,15 +39,15 @@ package Game is
       P1, P2, Ball : Movement;
    end record;
 
-   Paddle_Half_W : Integer := 8;
-   Paddle_Half_H : Integer := 50;
+   Paddle_Half_W : Float := 8.0;
+   Paddle_Half_H : Float := 50.0;
 
-   Paddle_W : Integer := Paddle_Half_W * 2;
-   Paddle_H : Integer := Paddle_Half_H * 2;
+   Paddle_W : Float := Paddle_Half_W * 2.0;
+   Paddle_H : Float := Paddle_Half_H * 2.0;
 
-   Padding       : Integer := 10;
-   Ball_Half_Dim : Integer := 10;
-   Ball_Dim      : Integer := Ball_Half_Dim * 2;
+   Padding       : Float := 10.0;
+   Ball_Half_Dim : Float := 10.0;
+   Ball_Dim      : Float := Ball_Half_Dim * 2.0;
 
    procedure Initialize (GS : out Game.State);
    procedure Process_Button (Button : out Button_State; Pressed : Boolean);
