@@ -2,7 +2,7 @@
 -- (c) copyright 2024 Lawrence D. Kern /////////////////////////////////////////
 --------------------------------------------------------------------------------
 
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;
 with System;
 
 with SDL3; use SDL3;
@@ -11,32 +11,49 @@ with Game;
 package body Platform is
    Window   : SDL3.Window;
    Renderer : SDL3.Renderer;
+   Texture  : SDL3.Texture;
 
-   Frame_Count : Natural := 0;
+   Frame_Count                                  : Natural := 0;
    Start_Time, Next_Frame_Time, Prev_Frame_Time : Time;
 
-   procedure Initialize is
+   procedure Log (Message : String) is
    begin
-      Put_Line ("Pong Start!");
+      Ada.Text_IO.Put_Line (Message);
+   end Log;
 
+   procedure Initialize (W, H : Integer) is
+      Window_Width  : Integer := W;
+      Window_Height : Integer := H;
+
+      Window_Flags : SDL3.Window_Flags := 0;
+
+      Use_High_DPI : Boolean := False;
+   begin
       SDL3.Init (Flags => SDL3.Init_Video);
 
+      if Use_High_DPI then
+         Window_Width  := Window_Width / 2;
+         Window_Height := Window_Height / 2;
+         Window_Flags  := Window_Flags or SDL3.Window_High_Pixel_Density;
+      end if;
+
       SDL3.Create_Window_And_Renderer
-        (Title    => "PONG", W => 600, H => 400,
-         Flags => SDL3.Window_Resizable or SDL3.Window_High_Pixel_Density,
-         Window   => Window,
-         Renderer => Renderer);
+        (Title => "PONG", W => Window_Width, H => Window_Height, Flags => Window_Flags,
+         Window => Window, Renderer => Renderer);
+
+      Texture := SDL3.Create_Texture (Renderer, W, H);
 
       Frames_Per_Second := 60; -- TODO: Determine based on monitor hz.
-      Frame_Duration := Microseconds (1_000_000) / Frames_Per_Second;
+      Frame_Duration    := Microseconds (1_000_000) / Frames_Per_Second;
 
-      Start_Time := Clock;
+      Start_Time      := Clock;
       Prev_Frame_Time := Start_Time;
       Next_Frame_Time := Start_Time + Frame_Duration;
 
+      Running := True;
    exception
       when E : SDL3.Initialization_Error =>
-         Put_Line ("ERROR: SDL3 initialzation failed.");
+         Log ("ERROR: SDL3 initialzation failed.");
    end Initialize;
 
    procedure Process_Input is
@@ -50,10 +67,16 @@ package body Platform is
       end loop;
    end Process_Input;
 
-   procedure Render is
+   procedure Render (Backbuffer : Game.Texture) is
+      Pitch : Integer := Backbuffer.W * Backbuffer.Pixels'Component_Size / 8;
+      Src_Rect : SDL3.FRect := (X => 0.0, Y => 0.0, W => Float (Backbuffer.W), H => Float (Backbuffer.H));
+      Dst_Rect : SDL3.FRect := Src_Rect;
    begin
       SDL3.Set_Render_Draw_Color (Renderer, R => 32, G => 32, B => 64, A => 255);
       SDL3.Render_Clear (Renderer);
+
+      SDL3.Update_Texture (Texture, Backbuffer.Pixels, Pitch);
+      SDL3.Render_Texture (Renderer, Texture, Src_Rect => Src_Rect, Dst_Rect => Dst_Rect);
 
       SDL3.Render_Present (Renderer);
    end Render;
@@ -69,7 +92,7 @@ package body Platform is
             Frame_Seconds : Float := Float (To_Duration (Next_Frame_Time - Prev_Frame_Time));
             Total_Seconds : Float := Float (To_Duration (Next_Frame_Time - Start_Time));
          begin
-            Put_Line ("Frame:" & Frame_Seconds'Image & "sec, Total:" & Total_Seconds'Image & "sec");
+            Log ("Frame:" & Frame_Seconds'Image & "sec, Total:" & Total_Seconds'Image & "sec");
          end;
       end if;
 

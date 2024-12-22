@@ -4,14 +4,17 @@
 
 with Ada.Real_Time; use Ada.Real_Time;
 
+with Game;
+
 package Platform is
    Frames_Per_Second : Natural;
-   Frame_Duration : Time_Span;
+   Frame_Duration    : Time_Span;
 
-   Running : Boolean := True;
+   Running : Boolean := False;
 
-   procedure Initialize;
+   procedure Log (Message : String);
+   procedure Initialize (W, H : Integer);
    procedure Process_Input;
-   procedure Render;
+   procedure Render (Backbuffer : Game.Texture);
    procedure Frame_End;
 end Platform;
