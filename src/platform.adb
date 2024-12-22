@@ -4,6 +4,7 @@
 
 with Ada.Text_IO;
 with System;
+with Interfaces.C; use Interfaces.C;
 
 with SDL3; use SDL3;
 with Game;
@@ -13,7 +14,8 @@ package body Platform is
    Renderer : SDL3.Renderer;
    Texture  : SDL3.Texture;
 
-   Frame_Count                                  : Natural := 0;
+   Frame_Count : Natural := 0;
+
    Start_Time, Next_Frame_Time, Prev_Frame_Time : Time;
 
    procedure Log (Message : String) is
@@ -60,16 +62,41 @@ package body Platform is
       Event : SDL3.Event;
    begin
       while SDL3.Poll_Event (Event) loop
-         if Event.Kind = SDL3.Event_Quit then
-            Running := False;
-            exit;
-         end if;
+         case Event.Basic.Kind is
+            when SDL3.Event_Quit =>
+               Running := False;
+               exit;
+
+            when SDL3.Event_Key_Up | SDL3.Event_Key_Down =>
+               if Event.Key.Down = C.True and Event.Key.Repeat = C.False then
+                  case Event.Key.Key is
+                     when Keycode_Escape =>
+                        Running := False;
+                        exit;
+
+                     when Keycode_W =>Log ("Up");
+                     when Keycode_A =>Log ("Left");
+                     when Keycode_S =>Log ("Down");
+                     when Keycode_D =>Log ("Right");
+
+                     when Keycode_I =>Log ("Up");
+                     when Keycode_J =>Log ("Left");
+                     when Keycode_K =>Log ("Down");
+                     when Keycode_L =>Log ("Right");
+
+                     when others =>null;
+                  end case;
+               end if;
+
+            when others =>null;
+         end case;
       end loop;
    end Process_Input;
 
    procedure Render (Backbuffer : Game.Texture) is
       Pitch : Integer := Backbuffer.W * Backbuffer.Pixels'Component_Size / 8;
-      Src_Rect : SDL3.FRect := (X => 0.0, Y => 0.0, W => Float (Backbuffer.W), H => Float (Backbuffer.H));
+      Src_Rect : SDL3.FRect :=
+        (X => 0.0, Y => 0.0, W => Float (Backbuffer.W), H => Float (Backbuffer.H));
       Dst_Rect : SDL3.FRect := Src_Rect;
    begin
       SDL3.Set_Render_Draw_Color (Renderer, R => 32, G => 32, B => 64, A => 255);

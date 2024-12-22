@@ -13,6 +13,7 @@ package SDL3 is
    Initialization_Error : exception;
 
    type Uint8 is mod 2**8 with Convention => C;
+   type Uint16 is mod 2**16 with Convention => C;
    type Uint32 is mod 2**32 with Convention => C;
    type Uint64 is mod 2**64 with Convention => C;
 
@@ -74,10 +75,52 @@ package SDL3 is
    -- NOTE: Just pad out the remaining 120 bytes of the 128 byte Event union.
    type Event_Padding is array (0 .. 14) of Uint64 with Component_Size => 64;
 
-   type Event is record
+   type Basic_Event is record
       Kind : Event_Type;
       Pad  : Event_Padding;
    end record;
+
+   type Keycode is new Uint32;
+   Keycode_Return : constant Keycode := 16#0000_000d#;
+   Keycode_Escape : constant Keycode := 16#0000_001b#;
+   Keycode_Right  : constant Keycode := 16#4000_004f#;
+   Keycode_Left   : constant Keycode := 16#4000_0050#;
+   Keycode_Down   : constant Keycode := 16#4000_0051#;
+   Keycode_Up     : constant Keycode := 16#4000_0052#;
+
+   Keycode_A : constant Keycode := 16#0000_0061#;
+   Keycode_D : constant Keycode := 16#0000_0064#;
+   Keycode_S : constant Keycode := 16#0000_0073#;
+   Keycode_W : constant Keycode := 16#0000_0077#;
+
+   Keycode_I : constant Keycode := 16#0000_0069#;
+   Keycode_J : constant Keycode := 16#0000_006a#;
+   Keycode_K : constant Keycode := 16#0000_006b#;
+   Keycode_L : constant Keycode := 16#0000_006c#;
+
+   type Keyboard_Event is record
+      Kind      : Event_Type;
+      Reserved  : Uint32;
+      Timestamp : Uint64;
+      Window_ID : Uint32;
+      Which     : Uint32;
+      Scancode  : Uint32;
+      Key       : Keycode;
+      Key_Mod   : Uint16;
+      Raw       : Uint16;
+      Down      : C.C_bool;
+      Repeat    : C.C_bool;
+   end record;
+
+   type Event_Tag is (Basic, Keyboard);
+
+   type Event (Tag : Event_Tag := Basic) is record
+      case Tag is
+         when Keyboard =>Key : Keyboard_Event;
+         when others =>Basic : Basic_Event;
+      end case;
+   end record
+   with Unchecked_Union;
    for Event'Size use 1_024;
    for Event'Alignment use 8;
 
