@@ -24,10 +24,9 @@ package body Platform is
    end Log;
 
    procedure Initialize (W, H : Integer) is
-      Window_Width  : Integer := W;
-      Window_Height : Integer := H;
-
-      Window_Flags : SDL3.Window_Flags := 0;
+      Window_Width  : Integer           := W;
+      Window_Height : Integer           := H;
+      Window_Flags  : SDL3.Window_Flags := 0;
 
       Use_High_DPI : Boolean := False;
    begin
@@ -42,6 +41,8 @@ package body Platform is
       SDL3.Create_Window_And_Renderer
         (Title => "PONG", W => Window_Width, H => Window_Height, Flags => Window_Flags,
          Window => Window, Renderer => Renderer);
+
+      SDL3.Set_Render_V_Sync (Renderer, 1);
 
       Texture := SDL3.Create_Texture (Renderer, W, H);
 

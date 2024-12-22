@@ -39,6 +39,15 @@ package body SDL3 is
       end if;
    end Create_Window_And_Renderer;
 
+   procedure Set_Render_V_Sync (Renderer : SDL3.Renderer; V_Sync : Integer) is
+      function SDL_Set_Render_V_Sync (Renderer : SDL3.Renderer; V_Sync : C.int) return C.C_bool
+           with Import => True, Convention => C, External_Name => "SDL_SetRenderVSync";
+   begin
+      if SDL_Set_Render_V_Sync (Renderer, C.int (V_Sync)) /= C.True then
+         null;
+      end if;
+   end Set_Render_V_Sync;
+
    function Poll_Event (Event : out SDL3.Event) return Boolean is
       function SDL_Poll_Event (Event_Ptr : System.Address) return C.C_bool
         with Import => True, Convention => C, External_Name => "SDL_PollEvent";

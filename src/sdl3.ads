@@ -66,6 +66,8 @@ package SDL3 is
       Window   : out SDL3.Window;
       Renderer : out SDL3.Renderer);
 
+   procedure Set_Render_V_Sync (Renderer : SDL3.Renderer; V_Sync : Integer);
+
    type Event_Type is new Uint32;
    Event_First    : constant Event_Type := 16#000#;
    Event_Quit     : constant Event_Type := 16#100#;
