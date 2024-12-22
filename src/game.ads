@@ -3,6 +3,7 @@
 --------------------------------------------------------------------------------
 
 with Ada.Real_Time; use Ada.Real_Time;
+with Ada.Numerics.Real_Arrays;
 
 package Game is
    type Pixel_Value is mod 2**32;
@@ -24,15 +25,18 @@ package Game is
 
    type Button_States is array (Button_Type) of Button_State;
 
-   type Position is record
-      X, Y : Integer := 0;
+   type Vec2 is new Ada.Numerics.Real_Arrays.Real_Vector (1 .. 2);
+
+   type Movement is record
+      Position : Vec2 := (0.0, 0.0);
+      Velocity : Vec2 := (0.0, 0.0);
    end record;
 
    type State is record
       Backbuffer : Texture;
       Buttons    : Button_States;
 
-      P1, P2, Ball : Position;
+      P1, P2, Ball : Movement;
    end record;
 
    Paddle_Half_W : Integer := 8;
