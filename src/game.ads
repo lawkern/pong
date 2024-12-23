@@ -5,9 +5,15 @@
 with Ada.Real_Time; use Ada.Real_Time;
 with Ada.Numerics.Real_Arrays;
 
+with Interfaces; use Interfaces;
+
 package Game is
-   type Pixel_Value is mod 2**32;
-   type Pixel_Buffer is array (Natural range <>) of Pixel_Value;
+   type U8 is new Unsigned_8;
+   type U16 is new Unsigned_16;
+   type U32 is new Unsigned_32;
+   type U64 is new Unsigned_64;
+
+   type Pixel_Buffer is array (Natural range <>) of U32;
    type Pixel_Access is access Pixel_Buffer;
 
    type Texture is record
@@ -26,17 +32,28 @@ package Game is
    type Button_States is array (Button_Type) of Button_State;
 
    type Vec2 is new Ada.Numerics.Real_Arrays.Real_Vector (1 .. 2);
+   type Vec4 is new Ada.Numerics.Real_Arrays.Real_Vector (1 .. 4);
+
+   White : Vec4 := (1.0, 1.0, 1.0, 1.0);
+   Blue  : Vec4 := (0.0, 0.0, 1.0, 1.0);
 
    type Movement is record
       Position : Vec2 := (0.0, 0.0);
       Velocity : Vec2 := (0.0, 0.0);
    end record;
 
+   type Ball_Indices is mod 2**4;
+   type Ball_Movements is array (Ball_Indices) of Movement;
+
    type State is record
       Backbuffer : Texture;
       Buttons    : Button_States;
+      Frame      : U32;
 
-      P1, P2, Ball : Movement;
+      P1, P2 : Movement;
+
+      Ball_Index : Ball_Indices := 0;
+      Ball       : Ball_Movements;
    end record;
 
    Paddle_Half_W : Float := 8.0;
