@@ -69,5 +69,5 @@ package Game is
 
    procedure Initialize (GS : out Game.State);
    procedure Process_Button (Button : out Button_State; Pressed : Boolean);
-   procedure Update (GS : in out Game.State; Frame_Duration : Time_Span);
+   procedure Update (GS : in out Game.State; Frame_Time_Elapsed : Time_Span);
 end Game;

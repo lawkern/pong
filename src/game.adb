@@ -14,7 +14,7 @@ package body Game is
 
       for I in Ball_Indices loop
          GS.Ball (I).Position := (Float (GS.Backbuffer.W) / 2.0 - Ball_Half_Dim, Float (GS.Backbuffer.H) / 2.0 - Ball_Half_Dim);
-         GS.Ball (I).Velocity := (1.0, 0.5);
+         GS.Ball (I).Velocity := (200.0, 150.0);
       end loop;
    end Initialize;
 
@@ -24,7 +24,7 @@ package body Game is
       Button.Transitioned := True;
    end Process_Button;
 
-   procedure Update (GS : in out Game.State; Frame_Duration : Time_Span) is
+   procedure Update (GS : in out Game.State; Frame_Time_Elapsed : Time_Span) is
       function To_U32 (V : Vec4) return U32 is
          R : U8 := U8 (V (1) * 255.0);
          G : U8 := U8 (V (2) * 255.0);
@@ -37,6 +37,11 @@ package body Game is
            Shift_Left (U32 (B), 8) or
            Shift_Left (U32 (A), 0);
       end To_U32;
+
+      function To_Vec2 (V : Float) return Vec2 is
+      begin
+         return (V, V);
+      end To_Vec2;
 
       procedure Clear (Color : Vec4) is
          Color32 : U32 := To_U32 (Color);
@@ -103,37 +108,42 @@ package body Game is
       end Made_Contact;
 
       procedure Move_Ball (Ball : in out Movement; P1, P2 : Movement) is
-         Factor   : Float := 200.0;
-         Half_Dim : Vec2  := (Ball_Half_Dim, Ball_Half_Dim);
+         Half_Dim : Vec2 := (Ball_Half_Dim, Ball_Half_Dim);
 
          Min : Vec2 := Half_Dim;
          Max : Vec2 := (Float (GS.Backbuffer.W), Float (GS.Backbuffer.H)) - Half_Dim;
 
          Hit1, Hit2 : Boolean := False;
+
+         DT : Float := Float (To_Duration (Frame_Time_Elapsed));
       begin
          Hit1 := Made_Contact (Ball => Ball, Paddle => P1);
          Hit2 := Made_Contact (Ball => Ball, Paddle => P2);
 
-         -- NOTE: Ball is moving to the left
-         if Ball.Velocity (1) < 0.0 then
-            if Hit1 or else Ball.Position (1) < Min (1) then
-               Ball.Velocity (1) := Ball.Velocity (1) * (-1.0);
-            end if;
+         -- NOTE: Speed up the ball on each hit.
+         if Hit1 or Hit2 then
+            Ball.Velocity := Ball.Velocity * 1.05;
          end if;
 
-         -- NOTE: Ball is moving to the right.
-         if Ball.Velocity (1) > 0.0 then
-            if Hit2 or else Ball.Position (1) > Max (1) then
-               Ball.Velocity (1) := Ball.Velocity (1) * (-1.0);
-            end if;
+         -- NOTE: Ball collided while moving to the left.
+         if Ball.Velocity (1) < 0.0 and (Hit1 or Ball.Position (1) < Min (1)) then
+            Ball.Velocity (1) := Ball.Velocity (1) * (-1.0);
          end if;
 
-         if (Ball.Position (2) > Max (2) and Ball.Velocity (2) > 0.0) or (Ball.Position (2) < Min (2) and Ball.Velocity (2) < 0.0) then
+         -- NOTE: Ball collided while moving to the right.
+         if Ball.Velocity (1) > 0.0 and (Hit2 or Ball.Position (1) > Max (1)) then
+            Ball.Velocity (1) := Ball.Velocity (1) * (-1.0);
+         end if;
+
+         -- NOTE: Ball collided with top or bottom border.
+         if
+           (Ball.Position (2) > Max (2) and Ball.Velocity (2) > 0.0) or
+           (Ball.Position (2) < Min (2) and Ball.Velocity (2) < 0.0) then
+
             Ball.Velocity (2) := Ball.Velocity (2) * (-1.0);
          end if;
 
-         Ball.Position (1) := Ball.Position (1) + (Float (To_Duration (Frame_Duration)) * Ball.Velocity (1) * Factor);
-         Ball.Position (2) := Ball.Position (2) + (Float (To_Duration (Frame_Duration)) * Ball.Velocity (2) * Factor);
+         Ball.Position := Ball.Position + (Ball.Velocity * DT);
       end Move_Ball;
 
       procedure Draw_Board is
@@ -211,10 +221,9 @@ package body Game is
       GS.Frame := GS.Frame + 1;
       Move_Ball (GS.Ball (GS.Ball_Index), GS.P1, GS.P2);
 
-      Draw_Paddle (GS.P1, White);
-
-      Draw_Paddle (GS.P2, White);
       Draw_Ball (GS);
+      Draw_Paddle (GS.P1, White);
+      Draw_Paddle (GS.P2, White);
 
    end Update;
 end Game;

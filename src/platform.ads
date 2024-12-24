@@ -7,7 +7,7 @@ with Game;
 
 package Platform is
    Frames_Per_Second : Natural;
-   Frame_Duration    : Time_Span;
+   Frame_Time_Elapsed : Time_Span;
 
    Running : Boolean := False;
 

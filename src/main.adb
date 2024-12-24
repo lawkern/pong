@@ -16,7 +16,7 @@ begin
    while Platform.Running loop
       Platform.Process_Input (GS.Buttons);
 
-      Game.Update (GS, Platform.Frame_Duration);
+      Game.Update (GS, Platform.Frame_Time_Elapsed);
 
       Platform.Render (GS.Backbuffer);
       Platform.Frame_End;

@@ -47,11 +47,11 @@ package body Platform is
       Texture := SDL3.Create_Texture (Renderer, W, H);
 
       Frames_Per_Second := 60; -- TODO: Determine based on monitor hz.
-      Frame_Duration    := Microseconds (1_000_000) / Frames_Per_Second;
+      Frame_Time_Elapsed := Microseconds (1_000_000) / Frames_Per_Second;
 
       Start_Time      := Clock;
       Prev_Frame_Time := Start_Time;
-      Next_Frame_Time := Start_Time + Frame_Duration;
+      Next_Frame_Time := Start_Time + Frame_Time_Elapsed;
 
       Running := True;
    exception
@@ -126,10 +126,10 @@ package body Platform is
       end if;
 
       Prev_Frame_Time := Next_Frame_Time;
-      Next_Frame_Time := Next_Frame_Time + Frame_Duration;
+      Next_Frame_Time := Next_Frame_Time + Frame_Time_Elapsed;
 
       if Clock > Next_Frame_Time then
-         Next_Frame_Time := Clock + Frame_Duration;
+         Next_Frame_Time := Clock + Frame_Time_Elapsed;
       end if;
    end Frame_End;
 
