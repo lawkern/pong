@@ -36,6 +36,7 @@ package Game is
 
    White : Vec4 := (1.0, 1.0, 1.0, 1.0);
    Blue  : Vec4 := (0.0, 0.0, 1.0, 1.0);
+   Green : Vec4 := (0.0, 1.0, 0.0, 1.0);
 
    type Movement is record
       Position : Vec2 := (0.0, 0.0);

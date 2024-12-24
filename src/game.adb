@@ -25,13 +25,6 @@ package body Game is
    end Process_Button;
 
    procedure Update (GS : in out Game.State; Frame_Duration : Time_Span) is
-      procedure Clear (Color : U32) is
-      begin
-         for Pixel of GS.Backbuffer.Pixels.all loop
-            Pixel := Color;
-         end loop;
-      end Clear;
-
       function To_U32 (V : Vec4) return U32 is
          R : U8 := U8 (V (1) * 255.0);
          G : U8 := U8 (V (2) * 255.0);
@@ -45,19 +38,27 @@ package body Game is
            Shift_Left (U32 (A), 0);
       end To_U32;
 
+      procedure Clear (Color : Vec4) is
+         Color32 : U32 := To_U32 (Color);
+      begin
+         for Pixel of GS.Backbuffer.Pixels.all loop
+            Pixel := Color32;
+         end loop;
+      end Clear;
+
       procedure Draw_Rectangle (X, Y, W, H : Float; Color : Vec4) is
          X_Min : Integer := Integer'Max (Integer (X), 0);
          Y_Min : Integer := Integer'Max (Integer (Y), 0);
          X_Max : Integer := Integer'Min (Integer (X + W), GS.Backbuffer.W) - 1;
          Y_Max : Integer := Integer'Min (Integer (Y + H), GS.Backbuffer.H) - 1;
 
-         Offset : Natural;
+         Offset    : Natural;
          Src_Color : U32 := To_U32 (Color);
          Dst_Color : U32;
       begin
          for Y in Y_Min .. Y_Max loop
             for X in X_Min .. X_Max loop
-               Offset := Y * GS.Backbuffer.W + X;
+               Offset    := Y * GS.Backbuffer.W + X;
                Dst_Color := GS.Backbuffer.Pixels.all (Offset);
 
 
@@ -89,23 +90,50 @@ package body Game is
          end case;
       end Move_Paddle;
 
-      procedure Move_Ball (M : in out Movement) is
+      function Made_Contact (Ball, Paddle : Movement) return Boolean is
+         X_Min, X_Max, Y_Min, Y_Max : Float;
+      begin
+         X_Min := Paddle.Position (1) - Paddle_Half_W - Ball_Half_Dim;
+         X_Max := Paddle.Position (1) + Paddle_Half_W + Ball_Half_Dim;
+         Y_Min := Paddle.Position (2) - Paddle_Half_H - Ball_Half_Dim;
+         Y_Max := Paddle.Position (2) + Paddle_Half_H + Ball_Half_Dim;
+
+         return Ball.Position (1) >= X_Min and Ball.Position (1) <= X_Max and
+             Ball.Position (2) >= Y_Min and Ball.Position (2) <= Y_Max;
+      end Made_Contact;
+
+      procedure Move_Ball (Ball : in out Movement; P1, P2 : Movement) is
          Factor   : Float := 200.0;
          Half_Dim : Vec2  := (Ball_Half_Dim, Ball_Half_Dim);
 
          Min : Vec2 := Half_Dim;
          Max : Vec2 := (Float (GS.Backbuffer.W), Float (GS.Backbuffer.H)) - Half_Dim;
+
+         Hit1, Hit2 : Boolean := False;
       begin
-         if (M.Position (1) > Max (1) and M.Velocity (1) > 0.0) or (M.Position (1) < Min (1) and M.Velocity (1) < 0.0) then
-            M.Velocity (1) := M.Velocity (1) * (-1.0);
+         Hit1 := Made_Contact (Ball => Ball, Paddle => P1);
+         Hit2 := Made_Contact (Ball => Ball, Paddle => P2);
+
+         -- NOTE: Ball is moving to the left
+         if Ball.Velocity (1) < 0.0 then
+            if Hit1 or else Ball.Position (1) < Min (1) then
+               Ball.Velocity (1) := Ball.Velocity (1) * (-1.0);
+            end if;
          end if;
 
-         if (M.Position (2) > Max (2) and M.Velocity (2) > 0.0) or (M.Position (2) < Min (2) and M.Velocity (2) < 0.0) then
-            M.Velocity (2) := M.Velocity (2) * (-1.0);
+         -- NOTE: Ball is moving to the right.
+         if Ball.Velocity (1) > 0.0 then
+            if Hit2 or else Ball.Position (1) > Max (1) then
+               Ball.Velocity (1) := Ball.Velocity (1) * (-1.0);
+            end if;
          end if;
 
-         M.Position (1) := M.Position (1) + (Float (To_Duration (Frame_Duration)) * M.Velocity (1) * Factor);
-         M.Position (2) := M.Position (2) + (Float (To_Duration (Frame_Duration)) * M.Velocity (2) * Factor);
+         if (Ball.Position (2) > Max (2) and Ball.Velocity (2) > 0.0) or (Ball.Position (2) < Min (2) and Ball.Velocity (2) < 0.0) then
+            Ball.Velocity (2) := Ball.Velocity (2) * (-1.0);
+         end if;
+
+         Ball.Position (1) := Ball.Position (1) + (Float (To_Duration (Frame_Duration)) * Ball.Velocity (1) * Factor);
+         Ball.Position (2) := Ball.Position (2) + (Float (To_Duration (Frame_Duration)) * Ball.Velocity (2) * Factor);
       end Move_Ball;
 
       procedure Draw_Board is
@@ -134,19 +162,18 @@ package body Game is
                          W     => 4.0,
                          H     => 4.0,
                          Color => Blue);
-
       end Draw_Paddle;
 
       procedure Draw_Ball (GS : Game.State) is
          Step  : Integer := 4;
          Count : Integer := Ball_Indices'Modulus / Step;
 
-         A     : Float   := 0.0;
-         A_Inc : Float   := Float (Step) / Float (Ball_Indices'Modulus);
+         A     : Float := 0.0;
+         A_Inc : Float := Float (Step) / Float (Ball_Indices'Modulus);
       begin
          for I in reverse 0 .. Count - 1 loop
             declare
-               Offset : Integer := (I * Step);
+               Offset : Integer  := (I * Step);
                M : Movement := GS.Ball (GS.Ball_Index - Ball_Indices (Offset));
             begin
                A := A + A_Inc;
@@ -162,7 +189,7 @@ package body Game is
       end Draw_Ball;
 
    begin
-      Clear (16#0000_FFFF#);
+      Clear ((0.0, 0.0, 1.0, 1.0));
 
       Draw_Board;
 
@@ -182,9 +209,10 @@ package body Game is
       GS.Ball (GS.Ball_Index) := GS.Ball (GS.Ball_Index - 1);
 
       GS.Frame := GS.Frame + 1;
-      Move_Ball (GS.Ball (GS.Ball_Index));
+      Move_Ball (GS.Ball (GS.Ball_Index), GS.P1, GS.P2);
 
       Draw_Paddle (GS.P1, White);
+
       Draw_Paddle (GS.P2, White);
       Draw_Ball (GS);
 
