@@ -66,6 +66,10 @@ package SDL3 is
       Window   : out SDL3.Window;
       Renderer : out SDL3.Renderer);
 
+
+   type System_Theme is (System_Theme_Unknown, System_Theme_Dark, System_Theme_Light);
+   function Get_System_Theme return System_Theme;
+
    procedure Set_Render_V_Sync (Renderer : SDL3.Renderer; V_Sync : Integer);
 
    type Event_Type is new Uint32;

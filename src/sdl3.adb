@@ -39,6 +39,17 @@ package body SDL3 is
       end if;
    end Create_Window_And_Renderer;
 
+   function Get_System_Theme return System_Theme is
+      function SDL_Get_System_Theme return Uint32
+         with Import => True, Convention => C, External_Name => "SDL_GetSystemTheme";
+   begin
+      case SDL_Get_System_Theme is
+         when 1 =>return System_Theme_Light;
+         when 2 =>return System_Theme_Dark;
+         when others =>return System_Theme_Unknown;
+      end case;
+   end Get_System_Theme;
+
    procedure Set_Render_V_Sync (Renderer : SDL3.Renderer; V_Sync : Integer) is
       function SDL_Set_Render_V_Sync (Renderer : SDL3.Renderer; V_Sync : C.int) return C.C_bool
            with Import => True, Convention => C, External_Name => "SDL_SetRenderVSync";
