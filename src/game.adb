@@ -26,22 +26,34 @@ package body Game is
 
    procedure Update (GS : in out Game.State; Frame_Time_Elapsed : Time_Span) is
       function To_U32 (V : Vec4) return U32 is
-         R : U8 := U8 (V (1) * 255.0);
-         G : U8 := U8 (V (2) * 255.0);
-         B : U8 := U8 (V (3) * 255.0);
-         A : U8 := U8 (V (4) * 255.0);
       begin
          return
-           Shift_Left (U32 (R), 24) or
-           Shift_Left (U32 (G), 16) or
-           Shift_Left (U32 (B), 8) or
-           Shift_Left (U32 (A), 0);
+           Shift_Left (U32 (V (1) * 255.0), 24) or
+           Shift_Left (U32 (V (2) * 255.0), 16) or
+           Shift_Left (U32 (V (3) * 255.0), 8) or
+           Shift_Left (U32 (V (4) * 255.0), 0);
       end To_U32;
 
       function To_Vec2 (V : Float) return Vec2 is
       begin
          return (V, V);
       end To_Vec2;
+
+      function To_Vec4 (V : U32) return Vec4 is
+         R, G, B, A : Float;
+      begin
+         R := Float (Shift_Right (V, 24)) / 255.0;
+         G := Float (Shift_Right (V, 16)) / 255.0;
+         B := Float (Shift_Right (V, 8)) / 255.0;
+         A := Float (Shift_Right (V, 0)) / 255.0;
+
+         return (R, G, B, A);
+      end To_Vec4;
+
+      function Lerp (A, B, T : Float) return Float is
+      begin
+         return (A * (1.0 - T)) + (B * T);
+      end Lerp;
 
       procedure Clear (Color : Vec4) is
          Color32 : U32 := To_U32 (Color);
@@ -57,18 +69,28 @@ package body Game is
          X_Max : Integer := Integer'Min (Integer (X + W), GS.Backbuffer.W) - 1;
          Y_Max : Integer := Integer'Min (Integer (Y + H), GS.Backbuffer.H) - 1;
 
-         Offset    : Natural;
-         Src_Color : U32 := To_U32 (Color);
-         Dst_Color : U32;
+         Offset        : Natural;
+         Blended_Color : Vec4;
+
+         R, G, B, A : Float;
       begin
+         R := Color (1);
+         G := Color (2);
+         B := Color (3);
+         A := Color (4);
+
          for Y in Y_Min .. Y_Max loop
             for X in X_Min .. X_Max loop
-               Offset    := Y * GS.Backbuffer.W + X;
-               Dst_Color := GS.Backbuffer.Pixels.all (Offset);
+               Offset := Y * GS.Backbuffer.W + X;
 
+               Blended_Color := To_Vec4 (GS.Backbuffer.Pixels.all (Offset));
 
+               Blended_Color (1) := Lerp (Blended_Color (1), R, A);
+               Blended_Color (2) := Lerp (Blended_Color (2), G, A);
+               Blended_Color (3) := Lerp (Blended_Color (3), B, A);
+               Blended_Color (4) := 1.0;
 
-               GS.Backbuffer.Pixels.all (Offset) := Src_Color;
+               GS.Backbuffer.Pixels.all (Offset) := To_U32 (Blended_Color);
             end loop;
          end loop;
       end Draw_Rectangle;
