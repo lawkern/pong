@@ -4,6 +4,7 @@
 
 package body SDL3 is
 
+   -----------------------------------------------------------------------------
    procedure Init (Flags : Init_Flags) is
       function SDL_Init (Flags : Init_Flags) return C.C_bool
         with Import => True, Convention => C, External_Name => "SDL_Init";
@@ -13,6 +14,7 @@ package body SDL3 is
       end if;
    end Init;
 
+   ----------------------------------------------------------------------------
    procedure Create_Window_And_Renderer
      (Title    :     String;
       W, H     :     Integer;
@@ -39,6 +41,7 @@ package body SDL3 is
       end if;
    end Create_Window_And_Renderer;
 
+   ----------------------------------------------------------------------------
    function Get_System_Theme return System_Theme is
       function SDL_Get_System_Theme return Uint32
          with Import => True, Convention => C, External_Name => "SDL_GetSystemTheme";
@@ -50,15 +53,17 @@ package body SDL3 is
       end case;
    end Get_System_Theme;
 
+   ----------------------------------------------------------------------------
    procedure Set_Render_V_Sync (Renderer : SDL3.Renderer; V_Sync : Integer) is
       function SDL_Set_Render_V_Sync (Renderer : SDL3.Renderer; V_Sync : C.int) return C.C_bool
-           with Import => True, Convention => C, External_Name => "SDL_SetRenderVSync";
+        with Import => True, Convention => C, External_Name => "SDL_SetRenderVSync";
    begin
       if SDL_Set_Render_V_Sync (Renderer, C.int (V_Sync)) /= C.True then
          null;
       end if;
    end Set_Render_V_Sync;
 
+   ----------------------------------------------------------------------------
    function Poll_Event (Event : out SDL3.Event) return Boolean is
       function SDL_Poll_Event (Event_Ptr : System.Address) return C.C_bool
         with Import => True, Convention => C, External_Name => "SDL_PollEvent";
@@ -66,6 +71,7 @@ package body SDL3 is
       return SDL_Poll_Event (Event'Address) = C.True;
    end Poll_Event;
 
+   ----------------------------------------------------------------------------
    procedure Set_Render_Draw_Color (Renderer : SDL3.Renderer; R, G, B, A : Uint8) is
       function SDL_Set_Render_Draw_Color (Renderer : SDL3.Renderer; R, G, B, A : Uint8) return C.C_bool
         with Import => True, Convention => C, External_Name => "SDL_SetRenderDrawColor";
@@ -75,6 +81,7 @@ package body SDL3 is
       end if;
    end Set_Render_Draw_Color;
 
+   ----------------------------------------------------------------------------
    procedure Render_Clear (Renderer : SDL3.Renderer) is
       function SDL_Render_Clear (Renderer : SDL3.Renderer) return C.C_bool
         with Import => True, Convention => C, External_Name => "SDL_RenderClear";
@@ -84,6 +91,7 @@ package body SDL3 is
       end if;
    end Render_Clear;
 
+   ----------------------------------------------------------------------------
    procedure Render_Present (Renderer : SDL3.Renderer) is
       function SDL_Render_Present (Renderer : SDL3.Renderer) return C.C_bool
         with Import => True, Convention => C, External_Name => "SDL_RenderPresent";
@@ -93,6 +101,7 @@ package body SDL3 is
       end if;
    end Render_Present;
 
+   ----------------------------------------------------------------------------
    function Create_Texture
      (Renderer : SDL3.Renderer;
       W, H     : Integer) return Texture is
@@ -114,6 +123,7 @@ package body SDL3 is
       return Result;
    end Create_Texture;
 
+   ----------------------------------------------------------------------------
    procedure Update_Texture
      (Texture : SDL3.Texture;
       Pixels  : Game.Pixel_Access;
@@ -132,6 +142,7 @@ package body SDL3 is
       end if;
    end Update_Texture;
 
+   ----------------------------------------------------------------------------
    procedure Render_Texture
      (Renderer           :        SDL3.Renderer;
       Texture            :        SDL3.Texture;

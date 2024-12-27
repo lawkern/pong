@@ -3,6 +3,8 @@
 --------------------------------------------------------------------------------
 
 package body Game is
+
+   ----------------------------------------------------------------------------
    procedure Initialize (GS : out Game.State) is
    begin
       GS.Backbuffer.W      := 600;
@@ -18,12 +20,14 @@ package body Game is
       end loop;
    end Initialize;
 
+   ----------------------------------------------------------------------------
    procedure Process_Button (Button : out Button_State; Pressed : Boolean) is
    begin
       Button.Pressed      := Pressed;
       Button.Transitioned := True;
    end Process_Button;
 
+   ----------------------------------------------------------------------------
    procedure Update (GS : in out Game.State; Frame_Time_Elapsed : Time_Span) is
       function To_U32 (V : Vec4) return U32 is
       begin
@@ -39,6 +43,7 @@ package body Game is
          return (V, V);
       end To_Vec2;
 
+      -------------------------------------------------------------------------
       function To_Vec4 (V : U32) return Vec4 is
          R, G, B, A : Float;
       begin
@@ -50,11 +55,13 @@ package body Game is
          return (R, G, B, A);
       end To_Vec4;
 
+      -------------------------------------------------------------------------
       function Lerp (A, B, T : Float) return Float is
       begin
          return (A * (1.0 - T)) + (B * T);
       end Lerp;
 
+      -------------------------------------------------------------------------
       procedure Clear (Color : Vec4) is
          Color32 : U32 := To_U32 (Color);
       begin
@@ -63,6 +70,7 @@ package body Game is
          end loop;
       end Clear;
 
+      -------------------------------------------------------------------------
       procedure Draw_Rectangle (X, Y, W, H : Float; Color : Vec4) is
          X_Min : Integer := Integer'Max (Integer (X), 0);
          Y_Min : Integer := Integer'Max (Integer (Y), 0);
@@ -95,6 +103,7 @@ package body Game is
          end loop;
       end Draw_Rectangle;
 
+      -------------------------------------------------------------------------
       type Move_Direction is (Move_None, Move_Up, Move_Down);
 
       procedure Move_Paddle (M : in out Movement; Direction : Move_Direction) is
@@ -113,10 +122,12 @@ package body Game is
                   M.Position (2) := Float (GS.Backbuffer.H) - Paddle_Half_H;
                end if;
 
-            when Move_None =>null;
+            when Move_None =>
+               null;
          end case;
       end Move_Paddle;
 
+      -------------------------------------------------------------------------
       function Made_Contact (Ball, Paddle : Movement) return Boolean is
          X_Min, X_Max, Y_Min, Y_Max : Float;
       begin
@@ -129,6 +140,7 @@ package body Game is
              Ball.Position (2) >= Y_Min and Ball.Position (2) <= Y_Max;
       end Made_Contact;
 
+      -------------------------------------------------------------------------
       procedure Move_Ball (Ball : in out Movement; P1, P2 : Movement) is
          Half_Dim : Vec2 := (Ball_Half_Dim, Ball_Half_Dim);
 
@@ -168,6 +180,7 @@ package body Game is
          Ball.Position := Ball.Position + (Ball.Velocity * DT);
       end Move_Ball;
 
+      -------------------------------------------------------------------------
       procedure Draw_Board is
          Divider_W : Float := 6.0;
          Divider_H : Float := 16.0;
@@ -181,6 +194,7 @@ package body Game is
          end loop;
       end Draw_Board;
 
+      -------------------------------------------------------------------------
       procedure Draw_Paddle (M : Movement; Color : Vec4) is
       begin
          Draw_Rectangle (X     => M.Position (1) - Paddle_Half_W,
@@ -196,6 +210,7 @@ package body Game is
                          Color => Blue);
       end Draw_Paddle;
 
+      -------------------------------------------------------------------------
       procedure Draw_Ball (GS : Game.State) is
          Step  : Integer := 4;
          Count : Integer := Ball_Indices'Modulus / Step;
@@ -220,7 +235,8 @@ package body Game is
          end loop;
       end Draw_Ball;
 
-   begin
+
+   begin ----------------------------------------------------------------------
       Clear ((0.0, 0.0, 1.0, 1.0));
 
       Draw_Board;

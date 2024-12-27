@@ -18,11 +18,13 @@ package body Platform is
 
    Start_Time, Next_Frame_Time, Prev_Frame_Time : Time;
 
+   ----------------------------------------------------------------------------
    procedure Log (Message : String) is
    begin
       Ada.Text_IO.Put_Line (Message);
    end Log;
 
+   ----------------------------------------------------------------------------
    procedure Initialize (W, H : Integer) is
       Window_Width  : Integer           := W;
       Window_Height : Integer           := H;
@@ -46,7 +48,7 @@ package body Platform is
 
       Texture := SDL3.Create_Texture (Renderer, W, H);
 
-      Frames_Per_Second := 60; -- TODO: Determine based on monitor hz.
+      Frames_Per_Second  := 60; -- TODO: Determine based on monitor hz.
       Frame_Time_Elapsed := Microseconds (1_000_000) / Frames_Per_Second;
 
       Start_Time      := Clock;
@@ -59,6 +61,7 @@ package body Platform is
          Log ("ERROR: SDL3 initialzation failed.");
    end Initialize;
 
+   ----------------------------------------------------------------------------
    procedure Process_Input (Buttons : out Game.Button_States) is
       Event : SDL3.Event;
    begin
@@ -87,14 +90,17 @@ package body Platform is
                      when Keycode_K =>Game.Process_Button (Buttons (Game.Player2_Down), Pressed);
                      when Keycode_L =>Game.Process_Button (Buttons (Game.Player2_Right), Pressed);
 
-                     when others =>null;
+                     when others =>
+                        null;
                   end case;
                end;
-            when others =>null;
+            when others =>
+               null;
          end case;
       end loop;
    end Process_Input;
 
+   ----------------------------------------------------------------------------
    procedure Render (Backbuffer : Game.Texture) is
       Pitch : Integer := Backbuffer.W * Backbuffer.Pixels'Component_Size / 8;
       Src_Rect : SDL3.FRect :=
@@ -110,6 +116,7 @@ package body Platform is
       SDL3.Render_Present (Renderer);
    end Render;
 
+   ----------------------------------------------------------------------------
    procedure Frame_End is
    begin
       Frame_Count := Frame_Count + 1;
