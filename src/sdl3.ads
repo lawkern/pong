@@ -89,6 +89,7 @@ package SDL3 is
    type Keycode is new Uint32;
    Keycode_Return : constant Keycode := 16#0000_000d#;
    Keycode_Escape : constant Keycode := 16#0000_001b#;
+   Keycode_Space  : constant Keycode := 16#0000_0020#;
    Keycode_Right  : constant Keycode := 16#4000_004f#;
    Keycode_Left   : constant Keycode := 16#4000_0050#;
    Keycode_Down   : constant Keycode := 16#4000_0051#;

@@ -235,33 +235,64 @@ package body Game is
          end loop;
       end Draw_Ball;
 
+      function Is_Held (Button : Button_State) return Boolean is
+      begin
+         return Button.Pressed;
+      end Is_Held;
+
+      function Was_Pressed (Button : Button_State) return Boolean is
+      begin
+         return (Button.Pressed and Button.Transitioned);
+      end Was_Pressed;
+
+      function Was_Released (Button : Button_State) return Boolean is
+      begin
+         return (not Button.Pressed and Button.Transitioned);
+      end Was_Released;
+
+      Buttons : Button_States;
 
    begin ----------------------------------------------------------------------
+      Buttons := GS.Inputs (GS.Input_Index);
+
+      if Was_Pressed (Buttons (Player1_Start)) or Was_Pressed (Buttons (Player2_Start)) then
+         GS.Paused := not GS.Paused;
+      end if;
+
+      if not GS.Paused then
+         if Is_Held (Buttons (Player1_Up)) then
+            Move_Paddle (GS.P1, Move_Up);
+         elsif Is_Held (Buttons (Player1_Down)) then
+            Move_Paddle (GS.P1, Move_Down);
+         end if;
+
+         if Is_Held (Buttons (Player2_Up)) then
+            Move_Paddle (GS.P2, Move_Up);
+         elsif Is_Held (Buttons (Player2_Down)) then
+            Move_Paddle (GS.P2, Move_Down);
+         end if;
+
+         GS.Ball_Index           := GS.Ball_Index + 1;
+         GS.Ball (GS.Ball_Index) := GS.Ball (GS.Ball_Index - 1);
+
+         GS.Frame := GS.Frame + 1;
+         Move_Ball (GS.Ball (GS.Ball_Index), GS.P1, GS.P2);
+      end if;
+
       Clear ((0.0, 0.0, 1.0, 1.0));
-
       Draw_Board;
-
-      if GS.Buttons (Player1_Up).Pressed then
-         Move_Paddle (GS.P1, Move_Up);
-      elsif GS.Buttons (Player1_Down).Pressed then
-         Move_Paddle (GS.P1, Move_Down);
-      end if;
-
-      if GS.Buttons (Player2_Up).Pressed then
-         Move_Paddle (GS.P2, Move_Up);
-      elsif GS.Buttons (Player2_Down).Pressed then
-         Move_Paddle (GS.P2, Move_Down);
-      end if;
-
-      GS.Ball_Index           := GS.Ball_Index + 1;
-      GS.Ball (GS.Ball_Index) := GS.Ball (GS.Ball_Index - 1);
-
-      GS.Frame := GS.Frame + 1;
-      Move_Ball (GS.Ball (GS.Ball_Index), GS.P1, GS.P2);
-
       Draw_Ball (GS);
       Draw_Paddle (GS.P1, White);
       Draw_Paddle (GS.P2, White);
+
+      -- NOTE: Bulk copy inputs to the next frame.
+      GS.Input_Index             := GS.Input_Index + 1;
+      GS.Inputs (GS.Input_Index) := Buttons;
+
+      -- // NOTE: Clear the transition state for each controller's buttons.
+      for Button in Button_Type loop
+         GS.Inputs (GS.Input_Index) (Button).Transitioned := False;
+      end loop;
 
    end Update;
 end Game;

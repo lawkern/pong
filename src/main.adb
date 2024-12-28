@@ -14,7 +14,7 @@ begin
    Platform.Initialize (W => GS.Backbuffer.W, H => GS.Backbuffer.H);
 
    while Platform.Running loop
-      Platform.Process_Input (GS.Buttons);
+      Platform.Process_Input (GS.Inputs (GS.Input_Index));
 
       Game.Update (GS, Platform.Frame_Time_Elapsed);
 

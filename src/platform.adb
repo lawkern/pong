@@ -74,25 +74,31 @@ package body Platform is
             when SDL3.Event_Key_Up | SDL3.Event_Key_Down =>
                declare
                   Pressed : Boolean := Boolean (Event.Key.Down);
+                  Repeated : Boolean := Boolean (Event.Key.Repeat);
                begin
-                  case Event.Key.Key is
-                     when Keycode_Escape =>
-                        Running := False;
-                        exit;
+                  if not Repeated then
+                     case Event.Key.Key is
+                        when Keycode_Escape =>
+                           Running := False;
+                           exit;
 
-                     when Keycode_W =>Game.Process_Button (Buttons (Game.Player1_Up), Pressed);
-                     when Keycode_A =>Game.Process_Button (Buttons (Game.Player1_Left), Pressed);
-                     when Keycode_S =>Game.Process_Button (Buttons (Game.Player1_Down), Pressed);
-                     when Keycode_D =>Game.Process_Button (Buttons (Game.Player1_Right), Pressed);
+                        when Keycode_Space =>Game.Process_Button (Buttons (Game.Player1_Start), Pressed);
+                        when Keycode_Return =>Game.Process_Button (Buttons (Game.Player2_Start), Pressed);
 
-                     when Keycode_I =>Game.Process_Button (Buttons (Game.Player2_Up), Pressed);
-                     when Keycode_J =>Game.Process_Button (Buttons (Game.Player2_Left), Pressed);
-                     when Keycode_K =>Game.Process_Button (Buttons (Game.Player2_Down), Pressed);
-                     when Keycode_L =>Game.Process_Button (Buttons (Game.Player2_Right), Pressed);
+                        when Keycode_W =>Game.Process_Button (Buttons (Game.Player1_Up), Pressed);
+                        when Keycode_A =>Game.Process_Button (Buttons (Game.Player1_Left), Pressed);
+                        when Keycode_S =>Game.Process_Button (Buttons (Game.Player1_Down), Pressed);
+                        when Keycode_D =>Game.Process_Button (Buttons (Game.Player1_Right), Pressed);
 
-                     when others =>
-                        null;
-                  end case;
+                        when Keycode_I =>Game.Process_Button (Buttons (Game.Player2_Up), Pressed);
+                        when Keycode_J =>Game.Process_Button (Buttons (Game.Player2_Left), Pressed);
+                        when Keycode_K =>Game.Process_Button (Buttons (Game.Player2_Down), Pressed);
+                        when Keycode_L =>Game.Process_Button (Buttons (Game.Player2_Right), Pressed);
+
+                        when others =>
+                           null;
+                     end case;
+                  end if;
                end;
             when others =>
                null;

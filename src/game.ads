@@ -22,14 +22,17 @@ package Game is
    end record;
 
    type Button_Type is
-     (Player1_Up, Player1_Down, Player1_Left, Player1_Right,
-      Player2_Up, Player2_Down, Player2_Left, Player2_Right);
+     (Player1_Up, Player1_Down, Player1_Left, Player1_Right, Player1_Start,
+      Player2_Up, Player2_Down, Player2_Left, Player2_Right, Player2_Start);
 
    type Button_State is record
       Pressed, Transitioned : Boolean := False;
    end record;
 
    type Button_States is array (Button_Type) of Button_State;
+
+   type Input_Indices is mod 2;
+   type Input_States is array (Input_Indices) of Button_States;
 
    type Vec2 is new Ada.Numerics.Real_Arrays.Real_Vector (1 .. 2);
    type Vec4 is new Ada.Numerics.Real_Arrays.Real_Vector (1 .. 4);
@@ -48,8 +51,12 @@ package Game is
 
    type State is record
       Backbuffer : Texture;
-      Buttons    : Button_States;
       Frame      : U32;
+      Paused     : Boolean := False;
+
+      Input_Index : Input_Indices;
+      Inputs      : Input_States;
+
 
       P1, P2 : Movement;
 
