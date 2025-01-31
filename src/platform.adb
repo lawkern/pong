@@ -21,7 +21,8 @@ package body Platform is
    ----------------------------------------------------------------------------
    procedure Log (Message : String) is
    begin
-      Ada.Text_IO.Put_Line (Message);
+      -- Ada.Text_IO.Put_Line (Message);
+      null;
    end Log;
 
    ----------------------------------------------------------------------------

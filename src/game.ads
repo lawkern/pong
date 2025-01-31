@@ -4,6 +4,9 @@
 
 with Ada.Real_Time; use Ada.Real_Time;
 with Ada.Numerics.Real_Arrays;
+with Ada.Numerics.Float_Random;
+with Ada.Numerics.Elementary_Functions;
+with Ada.Text_IO;
 
 with Interfaces; use Interfaces;
 
@@ -57,11 +60,13 @@ package Game is
       Input_Index : Input_Indices;
       Inputs      : Input_States;
 
-
-      P1, P2 : Movement;
+      Entropy : Ada.Numerics.Float_Random.Generator;
+      P1, P2  : Movement;
 
       Ball_Index : Ball_Indices := 0;
       Ball       : Ball_Movements;
+
+      Score1, Score2 : Natural := 0;
    end record;
 
    Paddle_Half_W : Float := 8.0;

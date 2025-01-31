@@ -5,19 +5,39 @@
 package body Game is
 
    ----------------------------------------------------------------------------
+   procedure Begin_Round (GS : in out Game.State) is
+      VX, VY, Length : Float;
+   begin
+      -- NOTE: Display the score.
+      Ada.Text_IO.Put_Line ("Player1:" & GS.Score1'Image & ", " & "Player2" & GS.Score2'Image);
+
+      -- NOTE: Reset ball position and choose a random direction to move
+      VX := 2.0 * Ada.Numerics.Float_Random.Random (GS.Entropy) - 1.0;
+      VY := 2.0 * Ada.Numerics.Float_Random.Random (GS.Entropy) - 1.0;
+
+      Length := Ada.Numerics.Elementary_Functions.Sqrt (VX * VX + VY * VY);
+      VX     := VX / Length;
+      VY     := VY / Length;
+
+      for I in Ball_Indices loop
+         GS.Ball (I).Position := (Float (GS.Backbuffer.W) / 2.0 - Ball_Half_Dim, Float (GS.Backbuffer.H) / 2.0 - Ball_Half_Dim);
+         GS.Ball (I).Velocity := (200.0 * (VX, VY));
+      end loop;
+   end Begin_Round;
+
+   ----------------------------------------------------------------------------
    procedure Initialize (GS : out Game.State) is
    begin
       GS.Backbuffer.W      := 600;
       GS.Backbuffer.H      := 400;
       GS.Backbuffer.Pixels := new Pixel_Buffer (0 .. (GS.Backbuffer.W * GS.Backbuffer.H) - 1);
 
+      Ada.Numerics.Float_Random.Reset (GS.Entropy);
+
       GS.P1.Position := (Padding + Paddle_Half_W, Float (GS.Backbuffer.H) / 2.0);
       GS.P2.Position := (Float (GS.Backbuffer.W) - Paddle_W - Padding, Float (GS.Backbuffer.H) / 2.0);
 
-      for I in Ball_Indices loop
-         GS.Ball (I).Position := (Float (GS.Backbuffer.W) / 2.0 - Ball_Half_Dim, Float (GS.Backbuffer.H) / 2.0 - Ball_Half_Dim);
-         GS.Ball (I).Velocity := (200.0, 150.0);
-      end loop;
+      Begin_Round (GS);
    end Initialize;
 
    ----------------------------------------------------------------------------
@@ -128,7 +148,20 @@ package body Game is
       end Move_Paddle;
 
       -------------------------------------------------------------------------
-      function Made_Contact (Ball, Paddle : Movement) return Boolean is
+      type Wall_Contact is (Wall_None, Wall_Left, Wall_Right);
+      function Made_Wall_Contact (Ball : Movement) return Wall_Contact is
+      begin
+         if Ball.Position (1) <= Ball_Half_Dim then
+            return Wall_Left;
+         elsif Ball.Position (1) >= Float (GS.Backbuffer.W) - Ball_Half_Dim - 1.0 then
+            return Wall_Right;
+         else
+            return Wall_None;
+         end if;
+      end Made_Wall_Contact;
+
+      -------------------------------------------------------------------------
+      function Made_Paddle_Contact (Ball, Paddle : Movement) return Boolean is
          X_Min, X_Max, Y_Min, Y_Max : Float;
       begin
          X_Min := Paddle.Position (1) - Paddle_Half_W - Ball_Half_Dim;
@@ -138,10 +171,11 @@ package body Game is
 
          return Ball.Position (1) >= X_Min and Ball.Position (1) <= X_Max and
              Ball.Position (2) >= Y_Min and Ball.Position (2) <= Y_Max;
-      end Made_Contact;
+      end Made_Paddle_Contact;
 
       -------------------------------------------------------------------------
-      procedure Move_Ball (Ball : in out Movement; P1, P2 : Movement) is
+      type Score_Type is (Score_None, Score_Player1, Score_Player2);
+      function Move_Ball (Ball : in out Movement; P1, P2 : Movement) return Score_Type is
          Half_Dim : Vec2 := (Ball_Half_Dim, Ball_Half_Dim);
 
          Min : Vec2 := Half_Dim;
@@ -151,33 +185,42 @@ package body Game is
 
          DT : Float := Float (To_Duration (Frame_Time_Elapsed));
       begin
-         Hit1 := Made_Contact (Ball => Ball, Paddle => P1);
-         Hit2 := Made_Contact (Ball => Ball, Paddle => P2);
+         case Made_Wall_Contact (Ball) is
+            when Wall_Left =>
+               return Score_Player2;
+            when Wall_Right =>
+               return Score_Player1;
+            when Wall_None =>
+               Hit1 := Made_Paddle_Contact (Ball => Ball, Paddle => P1);
+               Hit2 := Made_Paddle_Contact (Ball => Ball, Paddle => P2);
 
-         -- NOTE: Speed up the ball on each hit.
-         if Hit1 or Hit2 then
-            Ball.Velocity := Ball.Velocity * 1.05;
-         end if;
+               -- NOTE: Speed up the ball on each hit.
+               if Hit1 or Hit2 then
+                  Ball.Velocity := Ball.Velocity * 1.05;
+               end if;
 
-         -- NOTE: Ball collided while moving to the left.
-         if Ball.Velocity (1) < 0.0 and (Hit1 or Ball.Position (1) < Min (1)) then
-            Ball.Velocity (1) := Ball.Velocity (1) * (-1.0);
-         end if;
+               -- NOTE: Ball collided while moving to the left.
+               if Ball.Velocity (1) < 0.0 and (Hit1 or Ball.Position (1) < Min (1)) then
+                  Ball.Velocity (1) := Ball.Velocity (1) * (-1.0);
+               end if;
 
-         -- NOTE: Ball collided while moving to the right.
-         if Ball.Velocity (1) > 0.0 and (Hit2 or Ball.Position (1) > Max (1)) then
-            Ball.Velocity (1) := Ball.Velocity (1) * (-1.0);
-         end if;
+               -- NOTE: Ball collided while moving to the right.
+               if Ball.Velocity (1) > 0.0 and (Hit2 or Ball.Position (1) > Max (1)) then
+                  Ball.Velocity (1) := Ball.Velocity (1) * (-1.0);
+               end if;
 
-         -- NOTE: Ball collided with top or bottom border.
-         if
-           (Ball.Position (2) > Max (2) and Ball.Velocity (2) > 0.0) or
-           (Ball.Position (2) < Min (2) and Ball.Velocity (2) < 0.0) then
+               -- NOTE: Ball collided with top or bottom border.
+               if
+                 (Ball.Position (2) > Max (2) and Ball.Velocity (2) > 0.0) or
+                 (Ball.Position (2) < Min (2) and Ball.Velocity (2) < 0.0) then
 
-            Ball.Velocity (2) := Ball.Velocity (2) * (-1.0);
-         end if;
+                  Ball.Velocity (2) := Ball.Velocity (2) * (-1.0);
+               end if;
 
-         Ball.Position := Ball.Position + (Ball.Velocity * DT);
+               Ball.Position := Ball.Position + (Ball.Velocity * DT);
+
+               return Score_None;
+         end case;
       end Move_Ball;
 
       -------------------------------------------------------------------------
@@ -235,6 +278,7 @@ package body Game is
          end loop;
       end Draw_Ball;
 
+      -------------------------------------------------------------------------
       function Is_Held (Button : Button_State) return Boolean is
       begin
          return Button.Pressed;
@@ -276,7 +320,17 @@ package body Game is
          GS.Ball (GS.Ball_Index) := GS.Ball (GS.Ball_Index - 1);
 
          GS.Frame := GS.Frame + 1;
-         Move_Ball (GS.Ball (GS.Ball_Index), GS.P1, GS.P2);
+
+         case Move_Ball (GS.Ball (GS.Ball_Index), GS.P1, GS.P2) is
+            when Score_None =>
+               null;
+            when Score_Player1 =>
+               GS.Score1 := GS.Score1 + 1;
+               Begin_Round (GS);
+            when Score_Player2 =>
+               GS.Score2 := GS.Score2 + 1;
+               Begin_Round (GS);
+         end case;
       end if;
 
       Clear ((0.0, 0.0, 1.0, 1.0));
